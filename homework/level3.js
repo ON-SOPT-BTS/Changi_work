@@ -221,6 +221,7 @@ const member = [
 ]
 
 const make_team = (members,teams) => {
+    members.sort(()=>Math.random() -0.5);
     const OB_male = members.filter(item => item.status === "OB" && item.gender === "남");
     const OB_female = members.filter(item => item.status === "OB" && item.gender === "여");
     const YB_male = members.filter(item => item.status === "YB"&& item.gender === "남");
