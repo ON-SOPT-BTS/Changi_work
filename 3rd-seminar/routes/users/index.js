@@ -5,7 +5,6 @@ const util = require('../../modules/utils');
 const responseMessage = require('../../modules/responseMessage');
 const statusCode = require('../../modules/statusCode');
 let usersDB = require('../../modules/users');
-const { map } = require('../../modules/users');
 
 router.post('/signup', async (req, res) => {
     try {
@@ -56,7 +55,6 @@ router.post('/signin', async (req, res) => {
     try {
         const { id, password } = req.body;
         if (!id || !password) {
-            console.log("필요값 누락");
             return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
         } else {
             const user_id = await usersDB.map((user) => {
