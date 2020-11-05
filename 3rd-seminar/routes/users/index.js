@@ -5,8 +5,9 @@ const util = require('../../modules/utils');
 const responseMessage = require('../../modules/responseMessage');
 const statusCode = require('../../modules/statusCode');
 let usersDB = require('../../modules/users');
+const { map } = require('../../modules/users');
 
-router.post('/signup', (req, res) => {
+router.post('/signup', async (req, res) => {
     try {
         const { id, password } = req.body;
         if (!id || !password) {
@@ -24,29 +25,29 @@ router.post('/signup', (req, res) => {
                         resolve(buf.toString('base64'));
                     });
                 });
-                const hash_password = new Promise((resolve, reject) => {
-                    salt.then((result) => {
-                        crypto.randomBytes(64, (err, buf) => {
-                            crypto.pbkdf2(password, result, 100000, 64, 'sha512', (err, key) => {
-                                resolve(key.toString('base64'));
-                            });
+                const hash_password = new Promise(async (resolve, reject) => {
+                    const salt_ = await salt;
+                    crypto.randomBytes(64, (err, buf) => {
+                        crypto.pbkdf2(password, salt_, 100000, 64, 'sha512', (err, key) => {
+                            resolve(key.toString('base64'));
                         });
-                    })
-                })
-                salt.then((salt) => {
-                    hash_password.then((password) => {
-                        usersDB.push({
-                            id, password, salt
-                        })
+                    });
 
-                    })
                 })
+                const saltdata = await salt;
+                const hashedpw = await hash_password;
+                usersDB.push({
+                    id,
+                    password: hashedpw,
+                    salt: saltdata
+                })
+
                 return res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.SIGN_UP_SUCCESS, id));
             }
         }
     } catch {
         (err) => {
-            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(utl.fail(statusCode.INTERNAL_SERVER_ERROR, responseMessage.SIGN_UP_FAIL,err));
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(utl.fail(statusCode.INTERNAL_SERVER_ERROR, responseMessage.SIGN_UP_FAIL, err));
         }
     }
     //1. req.body에서 데이터 가져오기
@@ -58,21 +59,21 @@ router.post('/signup', (req, res) => {
     //7. status: 200 message: SING_UP_SUCCESS, data: id만 반환! (비밀번호, salt 반환 금지!!)
 })
 
-router.post('/signin', (req, res) => {
-    try{
+router.post('/signin', async (req, res) => {
+    try {
         const { id, password } = req.body;
         if (!id || !password) {
             console.log("필요값 누락");
             return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
-        }else{
+        } else {
             const user_id = usersDB.map((user) => {
                 return user.id;
             })
-            if(!user_id.includes(id)){
+            if (!user_id.includes(id)) {
                 return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NO_USER));
-            }else{
+            } else {
                 const match_user = usersDB.filter(item => {
-                    return item.id === id; 
+                    return item.id === id;
                 });
                 const salt = match_user[0].salt;
                 const compare_password = new Promise((resolve, reject) => {
@@ -82,18 +83,17 @@ router.post('/signin', (req, res) => {
                         });
                     })
                 })
-                compare_password.then(compare_pw=>{
-                    if(match_user[0].password===compare_pw){
-                        return res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.SIGN_IN_SUCCESS,id));
-                    }else{
-                        return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.MISS_MATCH_PW));
-                    }
-                })
+                const compare_pw = await compare_password;
+                if (match_user[0].password === compare_pw) {
+                    return res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.SIGN_IN_SUCCESS, id));
+                } else {
+                    return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.MISS_MATCH_PW));
+                }
             }
         }
-    }catch{
+    } catch {
         (err) => {
-            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(utl.fail(statusCode.INTERNAL_SERVER_ERROR, responseMessage.SIGN_IN_FAIL,err));
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(utl.fail(statusCode.INTERNAL_SERVER_ERROR, responseMessage.SIGN_IN_FAIL, err));
         }
     }
     //1. req.body에서 데이터 가져오기
