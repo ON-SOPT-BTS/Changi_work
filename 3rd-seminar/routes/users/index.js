@@ -101,6 +101,5 @@ router.get('/', (req, res) => {
     return res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.MEMBER_READ_ALL_SUCCESS, users));
     // 1.모든 유저정보 조회 (id, password, salt)!
 })
-//Async Await으로 수정해보자!
 
 module.exports = router;
