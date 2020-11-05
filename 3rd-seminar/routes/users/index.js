@@ -20,28 +20,21 @@ router.post('/signup', async (req, res) => {
             if (user_id.includes(id)) {
                 return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.ALREADY_ID));
             } else {
-                const salt = new Promise((resolve, reject) => {
-                    crypto.randomBytes(64, (err, buf) => {
-                        resolve(buf.toString('base64'));
-                    });
-                });
-                const hash_password = new Promise(async (resolve, reject) => {
-                    const salt_ = await salt;
-                    crypto.randomBytes(64, (err, buf) => {
-                        crypto.pbkdf2(password, salt_, 100000, 64, 'sha512', (err, key) => {
-                            resolve(key.toString('base64'));
-                        });
-                    });
-
-                })
-                const saltdata = await salt;
-                const hashedpw = await hash_password;
+                const salt_pw = (password) => {
+                    return new Promise(async (resolve, reject) => {
+                        const salt = await crypto.randomBytes(64).toString('base64');
+                        const pw = await crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('base64');
+                        resolve({ salt, pw });
+                    })
+                }
+                const hashing_result = await salt_pw(password);
+                const salt = hashing_result.salt;
+                const hashedpw = hashing_result.pw;
                 usersDB.push({
                     id,
                     password: hashedpw,
-                    salt: saltdata
+                    salt
                 })
-
                 return res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.SIGN_UP_SUCCESS, id));
             }
         }
@@ -66,7 +59,7 @@ router.post('/signin', async (req, res) => {
             console.log("필요값 누락");
             return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
         } else {
-            const user_id = usersDB.map((user) => {
+            const user_id = await usersDB.map((user) => {
                 return user.id;
             })
             if (!user_id.includes(id)) {
@@ -76,14 +69,14 @@ router.post('/signin', async (req, res) => {
                     return item.id === id;
                 });
                 const salt = match_user[0].salt;
-                const compare_password = new Promise((resolve, reject) => {
-                    crypto.randomBytes(64, (err, buf) => {
-                        crypto.pbkdf2(password, salt, 100000, 64, 'sha512', (err, key) => {
-                            resolve(key.toString('base64'));
-                        });
-                    })
-                })
-                const compare_pw = await compare_password;
+                const compare_password = (password) => {
+                    return new Promise(async (resolve, reject) => {
+                        const comp_pw = await crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('base64');
+                        resolve(comp_pw);
+                    });
+                }
+
+                const compare_pw = await compare_password(password);
                 if (match_user[0].password === compare_pw) {
                     return res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.SIGN_IN_SUCCESS, id));
                 } else {
