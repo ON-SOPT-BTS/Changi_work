@@ -7,6 +7,5 @@
 |name|author (외래키 from User테이블 id)|User id (외래키 from User테이블 id)|
 |email|title||
 |password|contents||
-|salt|contents||
-||createdAt||
+|salt|createdAt||
 ||updatedAt||
