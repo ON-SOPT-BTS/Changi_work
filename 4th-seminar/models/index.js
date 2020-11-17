@@ -12,4 +12,14 @@ if (config.use_env_variable) {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 db.User = require('./users')(sequelize,Sequelize);
+db.Post = require('./post')(sequelize,Sequelize);
+db.Like = require('./like')(sequelize,Sequelize);
+
+db.User.hasMany(db.Post, { onDelete: 'cascade'});
+db.Post.belongsTo(db.User);
+
+db.User.belongsToMany(db.Post, {through: 'Like', as: 'Liked'});
+db.Post.belongsToMany(db.User, {through: 'Like', as: 'Liker'});
+
+
 module.exports = db;
