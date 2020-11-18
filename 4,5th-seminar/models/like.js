@@ -1,4 +1,4 @@
-const { User, Post } = require('../models');
+const { User, Post } = require('.');
 
 module.exports = (sequelize, DataTypes) => {
   return sequelize.define('Like', {
