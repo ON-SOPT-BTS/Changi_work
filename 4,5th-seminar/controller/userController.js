@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const util = require('../modules/util');
 const responseMessage = require('../modules/responseMessage');
 const statusCode = require('../modules/statusCode');
-const { User } = require('../models');
+const { User,Post } = require('../models');
 const { userService } = require('../service');
 
 module.exports = {
@@ -91,7 +91,11 @@ module.exports = {
                 where: {
                     id
                 },
-                attributes: ['id', 'email', 'userName']
+                attributes: ['id', 'email', 'userName'],
+                include: [{
+                    model: Post,
+                    attributes: ["title",'contents','postImageUrl']
+                }]
             });
             if (!user) {
                 console.log('존재하지 않는 아이디');
