@@ -3,15 +3,15 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const {sequelize} = require('./models');
+const { sequelize } = require('./models');
 
-sequelize.sync({alter : false})
-.then(()=>{
-  console.log('데이터베이스 연결 성공.');
-})
-.catch((err)=>{
-  console.log(err);
-})
+sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('데이터베이스 연결 성공.');
+  })
+  .catch((err) => {
+    console.log(err);
+  })
 
 var indexRouter = require('./routes/index');
 
@@ -30,12 +30,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

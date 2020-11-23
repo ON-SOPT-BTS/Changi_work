@@ -17,6 +17,9 @@ module.exports = (sequelize, DataTypes) => {
         salt: {
             type: DataTypes.STRING(200),
             allowNull: false,
+        },
+        refreshToken: {
+            type: DataTypes.STRING(500)
         }
     },
         {

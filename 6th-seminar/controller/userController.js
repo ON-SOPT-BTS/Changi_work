@@ -62,6 +62,14 @@ module.exports = {
             const { accessToken, refreshToken } = await jwt.sign(alreadyEmail);
             //4. 비밀번호 확인하기 - 로그인할 email의 salt를 DB에서 가져와서 사용자가 request로 보낸 password와 암호화를 한후 디비에 저장되어있는 password와 일치하면 true
             // 일치하지 않으면 Miss Match password 반환
+            const { saveRT } = await User.update({
+                refreshToken: refreshToken
+            }, {
+                where: {
+                    email
+                }
+            }
+            )
 
             return res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.SIGN_IN_SUCCESS, { id, email, userName, accessToken, refreshToken }));
             //5. status: 200 ,message: SIGN_IN_SUCCESS, data: id, email, userName 반환    
